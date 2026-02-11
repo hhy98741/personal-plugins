@@ -1,0 +1,13 @@
+{
+  "name": "claude-plugins",
+  "owner": {
+    "name": "hhy98741",
+    "email": "gitcommitter@eskietech.com"
+  },
+  "plugins": [
+    {
+      "name": "app-builder",
+      "source": "./plugins/app-builder"
+    }
+  ]
+}
