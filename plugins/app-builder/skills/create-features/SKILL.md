@@ -35,8 +35,8 @@ Orchestrate the creation of individual feature implementation plans from an epic
 
 EPIC_FILE: $1
 OUTPUT_DIRECTORY: `specs/features/`
-TEAM_MEMBERS_DIR: `.claude/agents/team/`
-PLANNER_AGENT: `feature-planner`
+TEAM_MEMBERS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/team/`
+PLANNER_AGENT: `${CLAUDE_PLUGIN_ROOT}/agents/feature-planner`
 
 ## Instructions
 

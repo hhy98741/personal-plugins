@@ -25,7 +25,7 @@ FEATURE_FILE: $1
 FEATURES_DIRECTORY: `specs/features/`
 IN_PROGRESS_DIRECTORY: `specs/in-progress/`
 DONE_DIRECTORY: `specs/done/`
-TEAM_MEMBERS_DIR: `.claude/agents/team/`
+TEAM_MEMBERS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/team/`
 
 ## Instructions
 
