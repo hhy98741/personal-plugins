@@ -22,7 +22,7 @@
  *     Stop:
  *       - hooks:
  *           - type: command
- *             command: "bun run $CLAUDE_PROJECT_DIR/.claude/skills/shared-scripts/validate_file_contains.ts -d specs -e .md --contains '# Features' --matches '## \\d+\\. '"
+ *             command: "bun run ${CLAUDE_PLUGIN_ROOT}/skills/shared-scripts/validate_file_contains.ts -d specs -e .md --contains '# Features' --matches '## \\d+\\. '"
  */
 
 import { parseArgs } from "util";

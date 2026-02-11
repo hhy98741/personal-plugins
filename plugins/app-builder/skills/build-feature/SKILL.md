@@ -10,7 +10,7 @@ hooks:
     - hooks:
         - type: command
           command: >-
-            bun run $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validate_new_file.ts
+            bun run ${CLAUDE_PLUGIN_ROOT}/hooks/validators/validate_new_file.ts
             --directory specs/done
             --extension .md
 ---

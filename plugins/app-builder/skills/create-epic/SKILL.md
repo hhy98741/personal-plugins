@@ -10,12 +10,12 @@ hooks:
     - hooks:
         - type: command
           command: >-
-            bun run $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validate_new_file.ts
+            bun run ${CLAUDE_PLUGIN_ROOT}/hooks/validators/validate_new_file.ts
             --directory specs/epics
             --extension .md
         - type: command
           command: >-
-            bun run $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validate_file_contains.ts
+            bun run ${CLAUDE_PLUGIN_ROOT}/hooks/validators/validate_file_contains.ts
             --directory specs/epics
             --extension .md
             --contains '# Features'
