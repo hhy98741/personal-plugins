@@ -1,8 +1,8 @@
 {
-  "name": "claude-plugins",
+  "name": "personal-plugins",
   "owner": {
     "name": "hhy98741",
-    "email": "gitcommitter@eskietech.com"
+    "email": ""
   },
   "plugins": [
     {
