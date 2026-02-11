@@ -37,17 +37,20 @@ The plugin includes hooks for logging, safety checks (blocks dangerous `rm` comm
 
 ## Installation
 
-Add the plugin to your project's Claude Code settings file (`.claude/settings.json`):
+### From Plugin Marketplace
 
-```json
-{
-  "plugins": [
-    "/path/to/claude-plugins/plugins/app-builder"
-  ]
-}
+```
+/plugin marketplace add hhy98741/claude-plugins
+/plugin install app-builder
 ```
 
-Replace `/path/to/claude-plugins` with the actual path to this repository on your machine.
+### Manual Installation
+
+```
+git clone https://github.com/hhy98741/claude-plugins.git ~/.claude/plugins/claude-plugins
+```
+
+Start a new Claude Code session in your project. The plugin's hooks, skills, and agents will be available automatically.
 
 ## Setup
 
