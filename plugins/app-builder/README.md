@@ -14,9 +14,9 @@ App Builder gives you a workflow for going from a requirements document to worki
 
 | Command | Description |
 |---|---|
-| `/app-builder:create-epic` | Reads a requirements doc and extracts features into an epic file |
-| `/app-builder:create-features` | Takes an epic and creates individual feature implementation plans |
-| `/app-builder:build-feature` | Executes a feature plan using coder/reviewer subagents |
+| `/app-builder:create-epics` | Reads a requirements doc, groups features into dependency-ordered epics, writes each to a file |
+| `/app-builder:create-features` | Picks the next epic from specs/epics/, plans remaining features, moves epic to done |
+| `/app-builder:build-feature` | Picks the next dependency-ready feature and builds it with coder/reviewer agents |
 | `/app-builder:setup` | Configures plugin settings (engineer name, log level) |
 
 ### Agents
@@ -80,8 +80,8 @@ See the [setup command](commands/setup.md) for manual setup instructions.
 ## Typical Workflow
 
 ```
-/app-builder:create-epic docs/requirements.md
-/app-builder:create-features specs/epic.md
+/app-builder:create-epics docs/requirements.md
+/app-builder:create-features
 /app-builder:build-feature
 ```
 
@@ -103,7 +103,7 @@ plugins/app-builder/
     utils/                     Shared utilities (logging, TTS, messages)
     validators/                File validation hooks
   skills/
-    create-epic/               Epic creation skill
+    create-epics/              Epic creation skill
     create-features/           Feature planning skill
     build-feature/             Feature building skill
 ```

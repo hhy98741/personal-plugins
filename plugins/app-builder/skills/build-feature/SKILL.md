@@ -1,31 +1,21 @@
 ---
 name: build-feature
-description: Takes a feature plan from specs/features/ (or a given path), moves it to specs/in-progress/, executes the plan using team agents, validates completion, then moves the feature to specs/done/.
+description: Picks the next feature from specs/features/ whose epic and feature dependencies are all done, builds it with team agents, and moves it to done.
 disable-model-invocation: true
-argument-hint: [path to feature file (optional - picks first available)]
 model: opus
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(mv:*), Bash(mkdir:*), Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskOutput
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: >-
-            bun run ${CLAUDE_PLUGIN_ROOT}/hooks/validators/validate_new_file.ts
-            --directory specs/done
-            --extension .md
 ---
 
 # Build Feature
 
-Execute a feature implementation plan. Pick a feature from `specs/features/`, move it to `specs/in-progress/` while building, orchestrate team agents to implement the plan, validate the work, then move the feature file to `specs/done/`.
+Pick the next eligible feature from `FEATURES_DIRECTORY`, execute the implementation plan using team agents, validate the work, then move the feature file to `DONE_DIRECTORY`. A feature is eligible only when all its epic dependencies and feature dependencies have been completed.
 
 ## Variables
 
-FEATURE_FILE: $1
 FEATURES_DIRECTORY: `specs/features/`
-IN_PROGRESS_DIRECTORY: `specs/in-progress/`
-DONE_DIRECTORY: `specs/done/`
-TEAM_MEMBERS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/team/`
+IN_PROGRESS_DIRECTORY: `specs/features/in-progress/`
+DONE_DIRECTORY: `specs/features/done/`
+SUBAGENTS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/`
 
 ## Instructions
 
@@ -33,33 +23,28 @@ TEAM_MEMBERS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/team/`
 - Your job is to read the feature plan, create tasks, deploy agents, monitor progress, and validate completion.
 - **IMPORTANT**: Never write code yourself. Use `Task` to deploy coder agents for implementation work and reviewer agents to review and validate.
 - If a team member fails or produces incorrect work, redeploy them with corrected instructions. Do not fix their work yourself.
+- Features still in `FEATURES_DIRECTORY` have NOT been built yet. Features in `DONE_DIRECTORY` have been completed.
 
 ## Workflow
 
 1. **Select Feature**
-   - If `FEATURE_FILE` is provided, use that path.
-   - If no argument is provided, list all files in `FEATURES_DIRECTORY` using Glob.
+   - List all `.md` files in `FEATURES_DIRECTORY` using Glob (not subdirectories — only files directly in this directory).
    - If `FEATURES_DIRECTORY` is empty or does not exist, stop and tell the user there are no features to build.
-   - **Check dependencies before selecting.** For each candidate feature file (starting from the first alphabetically):
-     - Read the file and find the `**Dependencies**:` field near the top of the plan.
-     - If dependencies is "none", this feature is eligible — select it.
-     - If it lists feature IDs (e.g., `E001-F001, E001-F002`), check that **every** dependency feature file exists in `DONE_DIRECTORY` (using Glob). If all dependencies are in `specs/done/`, this feature is eligible — select it. If any dependency is missing from `specs/done/`, skip this feature and check the next one.
-   - If NO features have their dependencies satisfied, stop and tell the user which features are waiting on which dependencies. List what needs to be built first.
-   - Read the selected feature file to confirm it's a valid feature plan (should contain `## Task Description`, `## Step by Step Tasks`, etc.).
+   - **Check dependencies to find the next eligible feature.** Go through each candidate file, starting from the lowest `E###-F###` number:
+     - Read the file and find the `**Epic depends on**` and `**Feature depends on**` fields near the top.
+     - **Epic dependency check**: If `**Epic depends on**` lists epic filenames (e.g., `E001-user-auth.md`), extract the epic number from each (e.g., `E001`). For each dependent epic, check that NO feature files matching that epic number (e.g., `E001-F*.md`) exist in `FEATURES_DIRECTORY` or `IN_PROGRESS_DIRECTORY`. If any do, this epic dependency is not yet satisfied.
+     - **Feature dependency check**: If `**Feature depends on**` lists feature IDs (e.g., `E001-F002`), check that a file matching each ID exists in `DONE_DIRECTORY`. If any dependency is NOT in `DONE_DIRECTORY`, this feature dependency is not yet satisfied.
+     - If BOTH epic and feature dependencies are satisfied (or "None"), this feature is eligible — select it.
+     - If not, skip it and check the next file.
+   - If NO features have all dependencies satisfied, stop and tell the user which features are waiting on which dependencies. List what needs to be completed first.
 
-2. **Verify Dependencies**
-   - Read the selected feature file and find the `**Dependencies**:` field.
-   - If dependencies is "none", proceed.
-   - If it lists feature IDs, check that each dependency feature file exists in `DONE_DIRECTORY` using Glob.
-   - If any dependency is **not** in `specs/done/`, stop and tell the user. List which dependency features need to be built first. Do NOT proceed with the build.
-
-3. **Move to In-Progress**
+2. **Move to In-Progress**
    - Ensure `IN_PROGRESS_DIRECTORY` exists. If not, create it with `mkdir -p` via Bash.
    - Move the feature file to `IN_PROGRESS_DIRECTORY` using Bash `mv`. Keep the same filename.
    - Confirm the file now exists at its new location using Glob.
    - Store the new path — this is where you'll read the plan from for the rest of the workflow.
 
-4. **Read Plan**
+3. **Read Plan**
    - Read the feature plan from its new location in `IN_PROGRESS_DIRECTORY`.
    - Parse the plan to extract:
      - **Task Description** and **Objective** — to understand what needs to be built
@@ -68,19 +53,19 @@ TEAM_MEMBERS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/team/`
      - **Acceptance Criteria** — what success looks like
      - **Validation Commands** — commands to run to verify completion
 
-5. **Discover Team Agents**
-   - Read all files in `TEAM_MEMBERS_DIR` to understand what agent types are available.
+4. **Discover Team Agents**
+   - Read all files in `SUBAGENTS_DIR` to understand what agent types are available.
    - Match the team members listed in the plan to available agent types.
-   - If the plan references an agent type that doesn't exist in `TEAM_MEMBERS_DIR`, use `general-purpose` as a fallback.
+   - If the plan references an agent type that doesn't exist in `SUBAGENTS_DIR`, use `general-purpose` as a fallback.
 
-6. **Create Task List**
+5. **Create Task List**
    - For each step in **Step by Step Tasks**, call `TaskCreate` with:
      - `subject`: The task name from the plan
      - `description`: All the specific actions listed under that task, plus any relevant context from the plan (relevant files, acceptance criteria for that task, etc.)
      - `activeForm`: A present-continuous description (e.g., "Implementing user service")
    - After creating all tasks, set up dependencies using `TaskUpdate` with `addBlockedBy` matching the **Depends On** fields from the plan.
 
-7. **Execute Tasks**
+6. **Execute Tasks**
    - Work through the task list in dependency order. For each task:
      - Use `TaskUpdate` to set it to `in_progress`.
      - Deploy the assigned team agent using `Task` with:
@@ -96,7 +81,7 @@ TEAM_MEMBERS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/team/`
      - Always deploy the final validation task last, after all other tasks are complete.
    - **Resume pattern**: Store agent IDs. If a coder needs follow-up work (e.g., fixing issues found by reviewer), use `resume` to continue with its existing context.
 
-8. **Review and Validate**
+7. **Review and Validate**
    - After all coding tasks are complete, deploy a **reviewer** agent to review the code and validate it works.
    - The reviewer receives:
      - The feature plan path (in `IN_PROGRESS_DIRECTORY`)
@@ -111,13 +96,13 @@ TEAM_MEMBERS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/team/`
      - After the coder finishes, deploy the **reviewer** again to re-review.
      - Repeat the review → fix cycle up to **2 times**. If the reviewer still returns CHANGES_REQUIRED after 2 fix rounds, move to reporting with a FAIL status. The feature file stays in `IN_PROGRESS_DIRECTORY`.
 
-9. **Move to Done**
+8. **Move to Done**
    - Only if the reviewer verdict is APPROVED.
    - Ensure `DONE_DIRECTORY` exists. If not, create it with `mkdir -p` via Bash.
    - Move the feature file from `IN_PROGRESS_DIRECTORY` to `DONE_DIRECTORY` using Bash `mv`.
    - Confirm the file exists at its new location using Glob.
 
-10. **Report**
+9. **Report**
    - Provide a summary of what was built.
 
 ## Prompt Template for Coder Agent
@@ -134,7 +119,7 @@ You are building part of a feature implementation.
 <specific actions listed under this task in the plan>
 
 ## Context
-- **Feature Plan**: <path to the feature plan in specs/in-progress/>
+- **Feature Plan**: <path to the feature plan in specs/features/in-progress/>
 - **Feature**: <feature name>
 - **Objective**: <from the plan>
 
@@ -156,7 +141,7 @@ You are reviewing and validating code written for a feature implementation.
 ## Feature
 - **Name**: <feature name>
 - **Feature ID**: <E###-F###>
-- **Plan**: <path to feature plan in specs/in-progress/>
+- **Plan**: <path to feature plan in specs/features/in-progress/>
 
 ## Files Changed
 <list every file created or modified during the build, one per line>
@@ -190,7 +175,7 @@ You are fixing issues found during code review.
 <paste the numbered must-fix items from the reviewer's report>
 
 ## Context
-- **Feature Plan**: <path to the feature plan in specs/in-progress/>
+- **Feature Plan**: <path to the feature plan in specs/features/in-progress/>
 - **Feature**: <feature name>
 
 ## Instructions
@@ -209,6 +194,8 @@ Feature build complete.
 
 Feature: <feature name>
 Feature ID: <E###-F###>
+Epic depends on: <epic dependencies or "None">
+Feature depends on: <feature dependencies or "None">
 Plan: <path to feature plan>
 Status: <PASS or FAIL>
 
@@ -219,8 +206,8 @@ Tasks:
 
 Review: <APPROVED or CHANGES_REQUIRED>
 - Review rounds: <number of review cycles>
-<If APPROVED: "Review passed. All acceptance criteria met. Feature file moved to specs/done/.">
-<If CHANGES_REQUIRED after max retries: list unresolved must-fix items. Feature file remains in specs/in-progress/.>
+<If APPROVED: "Review passed. All acceptance criteria met. Feature file moved to specs/features/done/.">
+<If CHANGES_REQUIRED after max retries: list unresolved must-fix items. Feature file remains in specs/features/in-progress/.>
 <If there were Recommended items: list them briefly>
 
 Files Changed:

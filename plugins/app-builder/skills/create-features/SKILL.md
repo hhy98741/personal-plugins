@@ -1,134 +1,184 @@
 ---
 name: create-features
-description: Takes an epic file and creates individual feature implementation plans in specs/features/, one file per feature listed in the epic. Spawns a planner agent per feature to avoid context bloat.
+description: Finds the next epic in specs/epics/, explores the codebase once, creates implementation plans for all remaining features, and moves the epic to done.
 disable-model-invocation: true
-argument-hint: [path to epic file]
 model: opus
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(mv:*), Bash(mkdir:*), Task, TaskCreate, TaskUpdate, TaskList, TaskGet
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: >-
-            bun run ${CLAUDE_PLUGIN_ROOT}/hooks/validators/validate_new_file.ts
-            --directory specs/features
-            --extension .md
-        - type: command
-          command: >-
-            bun run ${CLAUDE_PLUGIN_ROOT}/hooks/validators/validate_file_contains.ts
-            --directory specs/features
-            --extension .md
-            --contains '## Task Description'
-            --contains '## Objective'
-            --contains '## Relevant Files'
-            --contains '## Team Orchestration'
-            --contains '### Team Members'
-            --contains '## Step by Step Tasks'
-            --contains '## Acceptance Criteria'
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(mv:*), Bash(mkdir:*)
 ---
 
 # Create Features
 
-Orchestrate the creation of individual feature implementation plans from an epic file. For each feature in the epic, spawn a **planner** agent that explores the codebase and writes a detailed implementation plan. This keeps each feature plan in a fresh context window so quality stays consistent whether there are 5 features or 100.
+Find the next epic, explore the codebase to understand relevant patterns and architecture, then write a detailed implementation plan for each feature in the epic. Since all features in an epic are related and touch the same area of the codebase, this is done in a single pass — explore once, plan all.
 
 ## Variables
 
-EPIC_FILE: $1
 OUTPUT_DIRECTORY: `specs/features/`
-TEAM_MEMBERS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/team/`
-PLANNER_AGENT: `${CLAUDE_PLUGIN_ROOT}/agents/feature-planner`
+EPICS_DIRECTORY: `specs/epics/`
+EPICS_DONE_DIRECTORY: `specs/epics/done/`
+SUBAGENTS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/`
 
 ## Instructions
 
-- If no `EPIC_FILE` is provided, stop and ask the user to provide the path to an epic file.
-- You are an **orchestrator**. You do NOT write feature plans yourself. You spawn a planner agent for each feature and give it the context it needs.
-- **IMPORTANT**: Do not explore the codebase yourself. The planner agent will do that with a fresh context window per feature. Your job is to parse the epic, analyze relationships, prepare targeted context, and dispatch.
+- You are both the **planner and the writer**. You explore the codebase, design the approach, and write all feature plans yourself.
+- Each epic has at most 7 related features. Since they share the same area of the codebase, you explore the codebase once and use that understanding across all feature plans.
+- Write plans detailed enough that an executing agent can build each feature without any additional context.
+- Do NOT build, write code, or deploy agents. Your only output is the plan documents.
 
 ## Workflow
 
-1. **Setup**
-   - Check if `OUTPUT_DIRECTORY` exists using Glob. If not, that's fine — the planner agents will create it when they write files.
-   - List existing files in `OUTPUT_DIRECTORY` to determine the starting `F###` number for this epic.
+1. **Find Next Epic**
+   - List all `.md` files in `EPICS_DIRECTORY` matching the pattern `E###-*.md`.
+   - Select the file with the **lowest** `E###` number. This is the next epic to process.
+   - If no epic files are found, stop and tell the user there are no epics to process in `EPICS_DIRECTORY`.
 
-2. **Discover Agents**
-   - Read all files in `TEAM_MEMBERS_DIR` to build a roster of available team agents.
-   - For each agent, capture: name, description, and any tool restrictions.
-   - Format this as a concise text block that can be passed to each planner agent.
-
-3. **Read Epic**
-   - Read the epic file at the path in `EPIC_FILE`.
+2. **Read Epic**
+   - Read the epic file.
    - Extract the epic number from the filename (e.g., `E001` from `E001-user-authentication.md`).
+   - Parse the `**Depends on**` line to capture epic-level dependencies (other epic filenames, or "None").
    - Parse every numbered feature. Each feature is a `## N. Feature Name` section with `**What it does**` and `**Expected outcome**` fields.
    - Build a list of features with: number, name, what it does, expected outcome, and assigned feature ID (E###-F###).
 
-4. **Analyze Dependencies and Grouping**
-   - Look at ALL features together and determine:
-     - **Groups**: Which features are related? (e.g., features touching the same area, features that form a workflow together)
+3. **Determine Remaining Features**
+   - List existing files in `OUTPUT_DIRECTORY` that start with the current epic number (e.g., `E001-F*.md`).
+   - Match each existing file to the feature list from the epic. A feature is already planned if a file matching its `E###-F###` pattern exists.
+   - Build the list of **remaining features** — those that do NOT yet have a corresponding plan file.
+   - If all features already have plans, skip to step 7 (Validate files).
+
+4. **Discover Team Agents**
+   - Read all files in `SUBAGENTS_DIR` to build a roster of available team agents.
+   - For each agent, capture: name, description, and any tool restrictions.
+   - You will reference these agents in the Team Orchestration section of each feature plan.
+
+5. **Explore Codebase**
+   - Investigate the codebase to understand existing patterns, architecture, relevant files, and conventions. Use Read, Glob, and Grep.
+   - Focus your exploration on the areas relevant to this epic's features. Since all features in the epic are related, they will share much of the same context.
+   - Understand: project structure, relevant existing files, coding patterns, testing conventions, configuration patterns, and any existing infrastructure you can build on.
+   - This is the ONE exploration pass — make it thorough. Everything you learn here informs all feature plans.
+
+6. **Analyze Dependencies and Write Plans**
+   - Look at ALL features in the epic (both already-planned and remaining) and determine:
      - **Dependencies**: Which features depend on another? (e.g., "edit user profile" depends on "create user profile")
-     - **Build order**: What order should features be planned in? Plan foundational features first so dependent features can reference them.
-   - For each feature, build a **related features brief** — a short summary (2-3 lines max per related feature) of only the features that are directly relevant to it. This is NOT a growing accumulation. It is a fixed, targeted set determined upfront. Most features will have 0-3 related features. Independent features get none.
-   - The related features brief should include: feature ID, feature name, and a one-line summary of what it creates or changes. Nothing more.
-   - Store the dependency and grouping information. You will use it when dispatching planner agents.
+     - **Build order**: What order should features be built in? Foundational features first.
+   - For each **remaining** feature, in build order, write a complete implementation plan to `OUTPUT_DIRECTORY/E###-F###-descriptive-name.md` using the Plan Format below.
+   - After writing each plan file, verify it was created using Glob. If it was not, retry once.
 
-5. **Dispatch Planner Agents**
-   - Dispatch planners in the **build order** determined in step 4 (foundational features first).
-   - For EACH feature, spawn a `feature-planner` agent using the `Task` tool.
-   - Each planner agent receives a prompt containing:
-     - The feature name, description ("What it does"), and expected outcome
-     - The epic filename and the assigned feature ID (e.g., `E001-F003`)
-     - The exact output file path (e.g., `specs/features/E001-F003-descriptive-name.md`)
-     - The full agent roster (names, descriptions, tool restrictions)
-     - The **related features brief** for this feature (only the directly relevant siblings — NOT all features). If the feature has no dependencies, omit this section entirely.
-     - Which feature IDs this feature depends on (so the planner can add them to the Dependencies section)
-   - Use `subagent_type: "feature-planner"` and `model: "opus"`.
-   - Run planner agents **sequentially** (one at a time, `run_in_background: false`). This ensures each agent has full system resources and avoids conflicts.
-   - After each planner completes, verify the output file was created using Glob. If it was not, retry that feature once.
+7. **Validate files**
+   - Re-read every feature plan file you just created using Read. Verify each file contains:
+     - `**Epic**` and `**Feature**` identifiers at the top
+     - `**Epic depends on**` and `**Feature depends on**` lines
+     - `## Task Description`
+     - `## Objective`
+     - `## Solution Approach`
+     - `## Relevant Files`
+     - `## Team Orchestration` with a `### Team Members` subsection
+     - `## Step by Step Tasks` with at least one numbered task
+     - `## Acceptance Criteria`
+     - `## Validation Commands`
+   - If any file is missing required content, fix it using Edit before continuing.
 
-6. **Validate**
-   - After all planners have completed, list all files in `OUTPUT_DIRECTORY` matching the epic number.
+8. **Validate completeness**
+   - List all files in `OUTPUT_DIRECTORY` matching the epic number.
    - Compare against the feature list from the epic. Verify every feature has a corresponding file.
-   - If any are missing, spawn a planner agent for each missing feature.
+   - If any are missing, write the missing plans and validate them per step 7.
 
-7. **Archive Epic**
-   - Ensure `specs/done/` exists. If not, create it with `mkdir -p` via Bash.
-   - Move the epic file from its original location to `specs/done/` using Bash `mv`. Keep the same filename.
+9. **Archive Epic**
+   - Ensure `EPICS_DONE_DIRECTORY` exists. If not, create it with `mkdir -p` via Bash.
+   - Move the epic file from `EPICS_DIRECTORY` to `EPICS_DONE_DIRECTORY` using Bash `mv`. Keep the same filename.
    - Confirm the file exists at its new location using Glob.
 
-8. **Report**
+10. **Report**
    - Provide a summary of all files created.
 
-## Prompt Template for Planner Agent
+## Plan Format
 
-When spawning each planner agent, use a prompt like this (fill in the actual values):
+Write each feature plan in this EXACT format. Replace `<requested content>` placeholders with actual content. Anything NOT in `<requested content>` should be written EXACTLY as shown.
 
-```
-You are planning the implementation of a single feature.
+```md
+# Feature: <Feature Name>
 
-## Feature
-- **Name**: <feature name>
-- **What it does**: <from epic>
-- **Expected outcome**: <from epic>
+**Epic**: <epic filename>
+**Feature**: <E###-F###>
+**Epic depends on**: <list of epic filenames from the Depends on line, or "None">
+**Feature depends on**: <list of feature IDs this depends on, or "None">
 
-## Context
-- **Epic**: <epic filename>
-- **Feature ID**: <E###-F###>
-- **Output file**: <OUTPUT_DIRECTORY/E###-F###-descriptive-name.md>
+## Task Description
+<describe the feature in detail. What it does, who it's for, how it fits into the broader epic. Include the original "What it does" and "Expected outcome" from the epic, then expand with implementation-relevant context.>
 
-## Available Team Agents
-<paste the agent roster here — name, description, tool restrictions for each>
+## Objective
+<clearly state what will be accomplished when this feature is complete>
 
-## Related Features
-<ONLY include this section if there are related features. Otherwise omit entirely.>
-<For each related feature, one brief entry:>
-- **<E###-F###>**: <feature name> — <one line: what it creates or changes>
+## Solution Approach
+<describe the proposed technical approach. How will this be implemented? What patterns should be followed? What architecture decisions need to be made? Include code examples or pseudo-code where appropriate to clarify complex concepts.>
 
-## Dependencies
-<list feature IDs this feature depends on, or "none">
-This feature depends on: <E###-F001, E###-F002, ...>
-These features should be built before this one. Account for their planned changes in your implementation approach.
+## Relevant Files
+Use these files to complete the task:
 
-## Instructions
-Explore the codebase to understand existing patterns and architecture. Then write a complete implementation plan for this feature to the output file path above. Follow the Plan Format from your instructions exactly. Include the Dependencies section in your plan.
+<list existing files relevant to this feature with bullet points explaining why each is relevant>
+
+### New Files
+<list any new files that need to be created, with a description of what each contains>
+
+## Team Orchestration
+
+- The executing agent operates as the team lead and orchestrates the team to execute this plan.
+- The team lead is responsible for deploying the right team members with the right context.
+- IMPORTANT: The team lead NEVER operates directly on the codebase. It uses `Task` and `Task*` tools to deploy team members for building, validating, testing, and other tasks.
+- Take note of the session id of each team member for referencing them.
+
+### Team Members
+<list the team members needed for this feature. Select from the available agents discovered. Assign unique names so multiple instances of the same agent type can be distinguished.>
+
+- <Agent Role>
+  - Name: <unique name for this agent instance>
+  - Role: <the specific focus this agent will have for this feature>
+  - Agent Type: <the subagent_type value — must match an available agent name or use "general-purpose">
+  - Resume: <true if the agent should continue with preserved context, false for a fresh start>
+- <continue with additional team members as needed>
+
+## Step by Step Tasks
+
+- IMPORTANT: Each task maps directly to a `TaskCreate` call when the plan is executed.
+- Tasks should be ordered: foundational work first, then core implementation, then validation.
+
+### 1. <First Task Name>
+- **Task ID**: <unique kebab-case identifier>
+- **Depends On**: <Task ID(s) this depends on, or "none">
+- **Assigned To**: <team member name from Team Members section>
+- **Agent Type**: <subagent_type>
+- **Parallel**: <true if can run alongside other tasks, false if must be sequential>
+- <specific action to complete>
+- <specific action to complete>
+
+### 2. <Second Task Name>
+- **Task ID**: <unique-id>
+- **Depends On**: <previous Task ID>
+- **Assigned To**: <team member name>
+- **Agent Type**: <subagent_type>
+- **Parallel**: <true/false>
+- <specific action>
+- <specific action>
+
+<continue with additional tasks as needed>
+
+### N. <Final Validation Task>
+- **Task ID**: validate-all
+- **Depends On**: <all previous Task IDs>
+- **Assigned To**: <validator team member>
+- **Agent Type**: <validator agent type>
+- **Parallel**: false
+- Run all validation commands
+- Verify acceptance criteria met
+
+## Acceptance Criteria
+<list specific, measurable criteria that must be met for this feature to be considered complete>
+
+## Validation Commands
+Execute these commands to validate the feature is complete:
+
+<list specific commands to validate the work — tests, type checks, linting, etc.>
+
+## Notes
+<optional additional context, considerations, edge cases, or dependencies>
 ```
 
 ## Report
@@ -139,18 +189,22 @@ After all features are planned, provide this summary:
 Feature plans created.
 
 Epic: <epic filename>
-Features planned: <count>
+Epic depends on: <epic dependencies or "None">
+Features planned: <count of newly planned features>
+Features skipped (already planned): <count or "None">
 Available agents: <list agent names discovered>
 
 Build Order:
-1. <E###-F### feature name> (no dependencies)
+1. <E###-F### feature name> (no feature dependencies)
 2. <E###-F### feature name> (depends on F###)
 3. ...
 
-Files:
+Files created:
 - <E###-F###-name.md>
 - <E###-F###-name.md>
 - ...
+
+Epic moved to: <EPICS_DONE_DIRECTORY/<filename>>
 
 Validation: <PASS or FAIL>
 <If PASS: "All features from the epic have corresponding feature plan files.">
