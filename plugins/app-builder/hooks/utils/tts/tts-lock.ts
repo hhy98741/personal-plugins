@@ -8,10 +8,10 @@ import {
   writeFileSync,
 } from "fs";
 import { join } from "path";
+import { getTtsQueueDir } from "../dir.ts";
 
-const LOCK_DIR = join(process.cwd(), ".claude", "data", "tts_queue");
-const LOCK_SENTINEL = join(LOCK_DIR, "tts.lock.d");
-const LOCK_FILE = join(LOCK_DIR, "tts.lock");
+const LOCK_SENTINEL = join(getTtsQueueDir(), "tts.lock.d");
+const LOCK_FILE = join(getTtsQueueDir(), "tts.lock");
 
 export function cleanupStaleLocks(maxAgeSeconds = 60): void {
   if (!existsSync(LOCK_FILE)) return;
@@ -57,7 +57,7 @@ export function cleanupStaleLocks(maxAgeSeconds = 60): void {
 }
 
 export function acquireTtsLock(agentId: string, timeout = 30): boolean {
-  mkdirSync(LOCK_DIR, { recursive: true });
+  mkdirSync(getTtsQueueDir(), { recursive: true });
   const start = Date.now();
   let retryMs = 100;
 

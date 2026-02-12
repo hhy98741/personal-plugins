@@ -2,6 +2,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { getLogDir } from "./utils/dir.ts";
 import { appendToLog, createLogger } from "./utils/log.ts";
 import { agentCompleteMessage } from "./utils/messages.ts";
 import { speak } from "./utils/tts/voice-notification.ts";
@@ -23,7 +24,6 @@ async function main(): Promise<void> {
 
     // Convert transcript to chat.json
     if (chat && inputData.transcript_path) {
-      const logDir = join(process.cwd(), "logs");
       const transcriptPath: string = inputData.transcript_path;
       if (existsSync(transcriptPath)) {
         try {
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
             }
           }
           writeFileSync(
-            join(logDir, "chat.json"),
+            join(getLogDir(), "chat.json"),
             JSON.stringify(chatData, null, 2)
           );
         } catch {

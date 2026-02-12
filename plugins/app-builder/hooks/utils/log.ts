@@ -1,15 +1,14 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-
-const LOG_DIR = join(process.cwd(), ".claude", "logs");
+import { getLogDir } from "./dir.ts";
 
 /**
  * Append an entry to a JSON array log file.
  * Creates the file and parent directories if they don't exist.
  */
 export function appendToLog(name: string, entry: unknown): void {
-  const logPath = join(LOG_DIR, `${name}.json`);
-  mkdirSync(LOG_DIR, { recursive: true });
+  const logPath = join(getLogDir(), `${name}.json`);
+  mkdirSync(getLogDir(), { recursive: true });
   let logData: unknown[] = [];
   if (existsSync(logPath)) {
     try {
@@ -37,12 +36,12 @@ const LOG_LEVELS = { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3 } as const;
 type LogLevel = keyof typeof LOG_LEVELS;
 
 export function createLogger(name: string): LevelLogger {
-  const logFile = join(LOG_DIR, "hooks.log");
+  const logFile = join(getLogDir(), "hooks.log");
   const env = (process.env.LOG_LEVEL ?? "DEBUG").toUpperCase();
   const minLevel = LOG_LEVELS[env as LogLevel] ?? LOG_LEVELS.DEBUG;
   const prefix = ` | ${name}`;
 
-  mkdirSync(LOG_DIR, { recursive: true });
+  mkdirSync(getLogDir(), { recursive: true });
 
   const write = (level: LogLevel, message: string): void => {
     if (LOG_LEVELS[level] < minLevel) return;

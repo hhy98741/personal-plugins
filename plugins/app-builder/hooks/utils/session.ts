@@ -1,7 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-
-const SESSIONS_DIR = join(process.cwd(), ".claude", "data", "sessions");
+import { getSessionDir } from "./dir.ts";
 
 export interface SessionData {
   session_id: string;
@@ -11,11 +10,11 @@ export interface SessionData {
 }
 
 function sessionFilePath(sessionId: string): string {
-  return join(SESSIONS_DIR, `${sessionId}.json`);
+  return join(getSessionDir(), `${sessionId}.json`);
 }
 
 export function readSessionData(sessionId: string): SessionData {
-  mkdirSync(SESSIONS_DIR, { recursive: true });
+  mkdirSync(getSessionDir(), { recursive: true });
   const sessionFile = sessionFilePath(sessionId);
 
   if (existsSync(sessionFile)) {
@@ -33,7 +32,7 @@ export function writeSessionData(
   sessionId: string,
   data: SessionData
 ): void {
-  mkdirSync(SESSIONS_DIR, { recursive: true });
+  mkdirSync(getSessionDir(), { recursive: true });
   try {
     writeFileSync(sessionFilePath(sessionId), JSON.stringify(data, null, 2));
   } catch {
