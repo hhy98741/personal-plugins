@@ -16,7 +16,7 @@ function engineerName(): string {
   return (process.env.ENGINEER_NAME ?? "").trim();
 }
 
-// --- Subagent completion ---
+// --- Subagent completion (subagent-stop) ---
 
 const SUBAGENT_COMPLETE = [
   "Subagent wrapped up its work.",
@@ -37,7 +37,7 @@ export function subagentCompleteMessage(): string {
   return name && Math.random() < 0.3 ? `${name}, ${msg.toLowerCase()}` : msg;
 }
 
-// --- Main agent completion ---
+// --- Main agent completion (stop) ---
 
 const AGENT_COMPLETE = [
   "All done!",
@@ -79,7 +79,33 @@ export function inputNeededMessage(): string {
   return name && Math.random() < 0.3 ? `${name}, ${msg.toLowerCase()}` : msg;
 }
 
-// --- Session start ---
+// --- New session (session-start) ---
+
+const SESSION_CLEAR = [
+  "Starting fresh session.",
+  "Clean slate, let's go.",
+  "Fresh start!",
+  "New session, new beginning.",
+  "All cleared, starting fresh.",
+  "Fresh session, ready to roll.",
+  "Starting over with a clean slate.",
+  "Cleared and ready.",
+  "Brand new session!",
+  "Starting from scratch.",
+];
+
+const SESSION_COMPACT = [
+  "Context compacted, carrying on.",
+  "Trimmed the context, still on track.",
+  "Compacted and ready to continue.",
+  "Context squeezed down, let's keep going.",
+  "Slimmed things down, nothing lost.",
+  "Compacted the conversation, moving forward.",
+  "Context tidied up, back to work.",
+  "Memory refreshed, staying focused.",
+  "Trimmed the fat, keeping the essentials.",
+  "Compacted and good to go.",
+];
 
 const SESSION_STARTUP = [
   "Claude Code session started.",
@@ -107,32 +133,22 @@ const SESSION_RESUME = [
   "Back in action!",
 ];
 
-const SESSION_CLEAR = [
-  "Starting fresh session.",
-  "Clean slate, let's go.",
-  "Fresh start!",
-  "New session, new beginning.",
-  "All cleared, starting fresh.",
-  "Fresh session, ready to roll.",
-  "Starting over with a clean slate.",
-  "Cleared and ready.",
-  "Brand new session!",
-  "Starting from scratch.",
-];
-
 export function sessionStartMessage(source: string): string {
   const name = engineerName();
   let msg: string;
 
   switch (source) {
+    case "clear":
+      msg = pick(SESSION_CLEAR);
+      break;
+    case "compact":
+      msg = pick(SESSION_COMPACT);
+      break;
     case "startup":
       msg = pick(SESSION_STARTUP);
       break;
     case "resume":
       msg = pick(SESSION_RESUME);
-      break;
-    case "clear":
-      msg = pick(SESSION_CLEAR);
       break;
     default:
       msg = pick(SESSION_STARTUP);
