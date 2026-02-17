@@ -2,7 +2,7 @@
 name: build-feature
 description: Picks the next feature from specs/features/ whose epic and feature dependencies are all done, builds it with team agents, and moves it to done.
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(mv:*), Bash(mkdir:*), Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskOutput
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(mv:*), Bash(mkdir:*), Bash(git:*), Bash(gh:*), Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskOutput
 ---
 
 # Build Feature
@@ -37,13 +37,19 @@ SUBAGENTS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/`
      - If not, skip it and check the next file.
    - If NO features have all dependencies satisfied, stop and tell the user which features are waiting on which dependencies. List what needs to be completed first.
 
-2. **Move to In-Progress**
+2. **Create Feature Branch**
+   - Record the current branch name using `git branch --show-current`. Store this as `BASE_BRANCH` — you will need it later when creating the pull request.
+   - Extract the feature ID (e.g., `E001-F003`) and a short description from the feature filename. The filename is typically like `E001-F003-some-feature-name.md`.
+   - Create a new branch named `feature/<feature-id>-<short-description>` (e.g., `feature/E001-F003-some-feature-name`) using `git checkout -b <branch-name>`.
+   - Confirm you are on the new branch with `git branch --show-current`.
+
+3. **Move to In-Progress**
    - Ensure `IN_PROGRESS_DIRECTORY` exists. If not, create it with `mkdir -p` via Bash.
    - Move the feature file to `IN_PROGRESS_DIRECTORY` using Bash `mv`. Keep the same filename.
    - Confirm the file now exists at its new location using Glob.
    - Store the new path — this is where you'll read the plan from for the rest of the workflow.
 
-3. **Read Plan**
+4. **Read Plan**
    - Read the feature plan from its new location in `IN_PROGRESS_DIRECTORY`.
    - Parse the plan to extract:
      - **Task Description** and **Objective** — to understand what needs to be built
@@ -52,19 +58,19 @@ SUBAGENTS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/`
      - **Acceptance Criteria** — what success looks like
      - **Validation Commands** — commands to run to verify completion
 
-4. **Discover Team Agents**
+5. **Discover Team Agents**
    - Read all files in `SUBAGENTS_DIR` to understand what agent types are available.
    - Match the team members listed in the plan to available agent types.
    - If the plan references an agent type that doesn't exist in `SUBAGENTS_DIR`, use `general-purpose` as a fallback.
 
-5. **Create Task List**
+6. **Create Task List**
    - For each step in **Step by Step Tasks**, call `TaskCreate` with:
      - `subject`: The task name from the plan
      - `description`: All the specific actions listed under that task, plus any relevant context from the plan (relevant files, acceptance criteria for that task, etc.)
      - `activeForm`: A present-continuous description (e.g., "Implementing user service")
    - After creating all tasks, set up dependencies using `TaskUpdate` with `addBlockedBy` matching the **Depends On** fields from the plan.
 
-6. **Execute Tasks**
+7. **Execute Tasks**
    - Work through the task list in dependency order. For each task:
      - Use `TaskUpdate` to set it to `in_progress`.
      - Deploy the assigned team agent using `Task` with:
@@ -80,7 +86,7 @@ SUBAGENTS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/`
      - Always deploy the final validation task last, after all other tasks are complete.
    - **Resume pattern**: Store agent IDs. If a coder needs follow-up work (e.g., fixing issues found by reviewer), use `resume` to continue with its existing context.
 
-7. **Review and Validate**
+8. **Review and Validate**
    - After all coding tasks are complete, deploy a **reviewer** agent to review the code and validate it works.
    - The reviewer receives:
      - The feature plan path (in `IN_PROGRESS_DIRECTORY`)
@@ -93,16 +99,27 @@ SUBAGENTS_DIR: `${CLAUDE_PLUGIN_ROOT}/agents/`
      - Read the reviewer's "Must Fix" list.
      - Deploy a **coder** agent with the must-fix items as its task. Include the reviewer's specific findings (file paths, line numbers, what's wrong, what's expected) so the coder knows exactly what to fix.
      - After the coder finishes, deploy the **reviewer** again to re-review.
-     - Repeat the review → fix cycle up to **2 times**. If the reviewer still returns CHANGES_REQUIRED after 2 fix rounds, move to reporting with a FAIL status. The feature file stays in `IN_PROGRESS_DIRECTORY`.
+     - Repeat the review → fix cycle up to **2 times**. If the reviewer still returns CHANGES_REQUIRED after 2 fix rounds, move to reporting with a FAIL status. The feature file stays in `IN_PROGRESS_DIRECTORY`. The feature branch is left as-is (do not create a PR or switch branches).
 
-8. **Move to Done**
+9. **Move to Done**
    - Only if the reviewer verdict is APPROVED.
    - Ensure `DONE_DIRECTORY` exists. If not, create it with `mkdir -p` via Bash.
    - Move the feature file from `IN_PROGRESS_DIRECTORY` to `DONE_DIRECTORY` using Bash `mv`.
    - Confirm the file exists at its new location using Glob.
 
-9. **Report**
-   - Provide a summary of what was built.
+10. **Commit and Create Pull Request**
+    - Only if the reviewer verdict is APPROVED.
+    - Stage all changes: `git add -A`.
+    - Commit with a brief message: `git commit -m "feat(<feature-id>): <short description of what was built>"` (e.g., `feat(E001-F003): add user profile page`).
+    - Push the feature branch to the remote: `git push -u origin <branch-name>`.
+    - Create a pull request into `BASE_BRANCH` (the branch recorded in step 2) using the GitHub CLI:
+      ```
+      gh pr create --base <BASE_BRANCH> --title "<feature-id>: <feature name>" --body "## Feature\n<feature name>\n\n## Feature ID\n<E###-F###>\n\n## Summary\n<brief description of what was built>\n\n## Files Changed\n<list of files>"
+      ```
+    - Record the PR URL from the output.
+
+11. **Report**
+    - Provide a summary of what was built.
 
 ## Prompt Template for Coder Agent
 
@@ -196,6 +213,9 @@ Feature ID: <E###-F###>
 Epic depends on: <epic dependencies or "None">
 Feature depends on: <feature dependencies or "None">
 Plan: <path to feature plan>
+Branch: <feature branch name>
+Base Branch: <base branch name>
+PR: <pull request URL or "N/A if FAIL">
 Status: <PASS or FAIL>
 
 Tasks:
