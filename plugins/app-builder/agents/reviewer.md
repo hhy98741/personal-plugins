@@ -1,7 +1,6 @@
 ---
 name: reviewer
 description: Read-only agent that reviews code and validates it works. Combines code review (correctness, quality, security, codebase fit) with validation (acceptance criteria, running tests/linting/type checks). Groups findings into must-fix and recommended. Returns APPROVED or CHANGES_REQUIRED.
-model: opus
 color: yellow
 allowed-tools: Read, Glob, Grep, Bash, TaskGet, TaskUpdate
 ---

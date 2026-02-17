@@ -2,7 +2,6 @@
 name: build-feature
 description: Picks the next feature from specs/features/ whose epic and feature dependencies are all done, builds it with team agents, and moves it to done.
 disable-model-invocation: true
-model: sonnet
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(mv:*), Bash(mkdir:*), Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskOutput
 ---
 
