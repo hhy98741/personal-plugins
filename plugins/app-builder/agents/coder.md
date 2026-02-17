@@ -1,7 +1,7 @@
 ---
 name: coder
 description: Focused coding agent that writes implementation code and tests based on instructions from an orchestrating agent. Handles new features, bug fixes, refactors, and PR changes. Writes clean, maintainable code and auto-detects the appropriate testing framework for the project.
-model: opus
+model: sonnet
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TaskGet, TaskUpdate
 color: blue
 ---
