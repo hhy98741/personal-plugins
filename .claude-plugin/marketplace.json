@@ -8,6 +8,10 @@
     {
       "name": "app-builder",
       "source": "./plugins/app-builder"
+    },
+    {
+      "name": "dev-hooks",
+      "source": "./plugins/dev-hooks"
     }
   ]
 }
