@@ -43,13 +43,10 @@ const AGENT_COMPLETE = [
   "All done!",
   "Work complete!",
   "Task finished!",
-  "Ready for your next move!",
   "Job done!",
-  "That's a wrap!",
-  "Finished up!",
+  "Finished!",
   "All set!",
-  "Done and dusted!",
-  "Ready when you are!",
+  "Done!",
 ];
 
 export function agentCompleteMessage(): string {
@@ -62,14 +59,11 @@ export function agentCompleteMessage(): string {
 
 const INPUT_NEEDED = [
   "Your agent needs your input.",
-  "Waiting on you for the next step.",
   "Input needed to keep going.",
   "Your agent has a question for you.",
   "Quick input needed over here.",
-  "Paused and waiting for your call.",
   "Need your direction to continue.",
   "Standing by for your input.",
-  "Your agent is waiting on you.",
   "A decision is needed to proceed.",
 ];
 
@@ -83,12 +77,9 @@ export function inputNeededMessage(): string {
 
 const SESSION_CLEAR = [
   "Starting fresh session.",
-  "Clean slate, let's go.",
-  "Fresh start!",
-  "New session, new beginning.",
+  "New session started.",
   "All cleared, starting fresh.",
-  "Fresh session, ready to roll.",
-  "Starting over with a clean slate.",
+  "New session, ready to roll.",
   "Cleared and ready.",
   "Brand new session!",
   "Starting from scratch.",
@@ -96,39 +87,30 @@ const SESSION_CLEAR = [
 
 const SESSION_COMPACT = [
   "Context compacted, carrying on.",
-  "Trimmed the context, still on track.",
   "Compacted and ready to continue.",
-  "Context squeezed down, let's keep going.",
   "Slimmed things down, nothing lost.",
-  "Compacted the conversation, moving forward.",
-  "Context tidied up, back to work.",
-  "Memory refreshed, staying focused.",
-  "Trimmed the fat, keeping the essentials.",
+  "Compacted the conversation.",
+  "Context compacted, staying focused.",
   "Compacted and good to go.",
+  "Context trimmed.",
 ];
 
 const SESSION_STARTUP = [
   "Claude Code session started.",
   "Session is up and running.",
   "Ready to go!",
-  "New session, let's get to work.",
+  "New session started.",
   "Session started, standing by.",
-  "Fired up and ready.",
   "Online and awaiting instructions.",
-  "Session initialized, let's do this.",
-  "Good to go!",
-  "New session is live.",
+  "Session initialized.",
 ];
 
 const SESSION_RESUME = [
   "Resuming previous session.",
   "Picking up where we left off.",
-  "Back at it!",
   "Session resumed, ready to continue.",
   "Continuing from last time.",
-  "Welcome back!",
   "Resuming your session now.",
-  "Right where we left off.",
   "Session restored, let's keep going.",
   "Back in action!",
 ];
