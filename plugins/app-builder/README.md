@@ -40,14 +40,14 @@ The plugin includes hooks for logging, safety checks (blocks dangerous `rm` comm
 ### From Plugin Marketplace
 
 ```
-/plugin marketplace add hhy98741/claude-plugins
+/plugin marketplace add hhy98741/personal-plugins
 /plugin install app-builder
 ```
 
 ### Manual Installation
 
 ```
-git clone https://github.com/hhy98741/claude-plugins.git ~/.claude/plugins/claude-plugins
+git clone https://github.com/hhy98741/claude-plugins.git ~/.claude/plugins/personal-plugins
 ```
 
 Start a new Claude Code session in your project. The plugin's hooks, skills, and agents will be available automatically.
