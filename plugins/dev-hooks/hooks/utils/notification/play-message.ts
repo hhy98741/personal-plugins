@@ -11,6 +11,9 @@ export function play(messageFile: string): void {
     } else if (platform === "linux") {
       // Linux
       Bun.spawn(["paplay", pathToFile]);
+    } else if (platform === "win32") {
+      // Windows
+      Bun.spawn(["powershell", "-c", `(New-Object Media.SoundPlayer '${pathToFile}').PlaySync();`]);
     }
   } catch {
     // Fail silently
