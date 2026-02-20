@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 
 import { appendToLog } from "./utils/log.ts";
-import { sessionStartMessage } from "./utils/messages.ts";
-import { speak } from "./utils/tts/voice-notification.ts";
+import { sessionStartMessage } from "./utils/notification/messages.ts";
+import { play } from "./utils/notification/play-message.ts";
 import { readSessionData, writeSessionData } from "./utils/session.ts";
 
 function startSessionData(
@@ -32,15 +32,15 @@ async function main(): Promise<void> {
     const source: string = inputData.source ?? "unknown";
     const sessionId: string = inputData.session_id ?? "unknown";
 
-    // Log session start
-    appendToLog("session_start", inputData);
-
     startSessionData(sessionId, nameAgent);
 
     // Announce if requested
     if (announce) {
-      speak(sessionStartMessage(source));
+      play(sessionStartMessage(source));
     }
+
+    // Log session start
+    appendToLog("session_start", inputData);
 
     process.exit(0);
   } catch {

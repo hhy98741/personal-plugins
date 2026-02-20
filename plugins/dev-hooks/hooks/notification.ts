@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 
 import { appendToLog } from "./utils/log.ts";
-import { inputNeededMessage } from "./utils/messages.ts";
-import { speak } from "./utils/tts/voice-notification.ts";
+import { inputNeededMessage } from "./utils/notification/messages.ts";
+import { play } from "./utils/notification/play-message.ts";
 
 async function main(): Promise<void> {
   if (process.env.SKIP_HOOKS) process.exit(0);
@@ -13,11 +13,11 @@ async function main(): Promise<void> {
     const input = await Bun.stdin.text();
     const inputData = JSON.parse(input);
 
-    appendToLog("notification", inputData);
-
     if (notify && inputData.message !== "Claude is waiting for your input") {
-      speak(inputNeededMessage());
+      play(inputNeededMessage());
     }
+
+    appendToLog("notification", inputData);
 
     process.exit(0);
   } catch {

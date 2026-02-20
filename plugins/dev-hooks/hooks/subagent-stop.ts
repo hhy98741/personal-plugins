@@ -4,9 +4,6 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { getLogDir } from "./utils/dir.ts";
 import { appendToLog, createLogger } from "./utils/log.ts";
-import { subagentCompleteMessage } from "./utils/messages.ts";
-import { speak } from "./utils/tts/voice-notification.ts";
-import { acquireTtsLock, cleanupStaleLocks, releaseTtsLock } from "./utils/tts/tts-lock.ts";
 
 const log = createLogger("subagent-stop");
 
@@ -15,7 +12,6 @@ async function main(): Promise<void> {
   try {
     const argv = new Set(process.argv.slice(2));
     const chat = argv.has("--chat");
-    const notify = argv.has("--notify");
 
     const input = await Bun.stdin.text();
     const inputData = JSON.parse(input);
@@ -46,32 +42,6 @@ async function main(): Promise<void> {
         } catch {
           // Fail silently
         }
-      }
-    }
-
-    // TTS announcement with lock
-    if (notify) {
-      cleanupStaleLocks(60);
-
-      const agentId: string = inputData.agent_id ?? "unknown";
-      log.debug(`=== SubagentStop for agent: ${agentId} ===`);
-
-      const summaryMessage = subagentCompleteMessage();
-      log.debug(`Generated summary_message: ${summaryMessage}`);
-
-      if (acquireTtsLock(agentId, 30)) {
-        try {
-          log.debug(`Lock acquired, announcing: ${summaryMessage}`);
-          speak(summaryMessage);
-        } finally {
-          releaseTtsLock(agentId);
-          log.debug("Lock released");
-        }
-      } else {
-        log.debug(
-          `Lock timeout, announcing anyway: ${summaryMessage}`
-        );
-        speak(summaryMessage);
       }
     }
 

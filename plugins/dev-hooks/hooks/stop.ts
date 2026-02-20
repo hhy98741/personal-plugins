@@ -4,8 +4,8 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { getLogDir } from "./utils/dir.ts";
 import { appendToLog, createLogger } from "./utils/log.ts";
-import { agentCompleteMessage } from "./utils/messages.ts";
-import { speak } from "./utils/tts/voice-notification.ts";
+import { agentCompleteMessage } from "./utils/notification/messages.ts";
+import { play } from "./utils/notification/play-message.ts";
 
 const log = createLogger("stop");
 
@@ -19,8 +19,13 @@ async function main(): Promise<void> {
     const input = await Bun.stdin.text();
     const inputData = JSON.parse(input);
 
-    // Log the event
-    appendToLog("stop", inputData);
+    // TTS announcement
+    if (notify) {
+      const summaryMessage = agentCompleteMessage();
+      play(summaryMessage);
+      
+      log.debug(`Generated summary_message: ${summaryMessage}`);
+    }
 
     // Convert transcript to chat.json
     if (chat && inputData.transcript_path) {
@@ -48,13 +53,8 @@ async function main(): Promise<void> {
       }
     }
 
-    // TTS announcement
-    if (notify) {
-      const summaryMessage = agentCompleteMessage();
-      log.debug(`Generated summary_message: ${summaryMessage}`);
-      
-      speak(summaryMessage);
-    }
+    // Log the event
+    appendToLog("stop", inputData);
 
     process.exit(0);
   } catch {

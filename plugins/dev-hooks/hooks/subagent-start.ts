@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 
 import { appendToLog, createLogger } from "./utils/log.ts";
-import { speak } from "./utils/tts/voice-notification.ts";
 
 const log = createLogger("subagent-start");
 
@@ -9,7 +8,6 @@ async function main(): Promise<void> {
   if (process.env.SKIP_HOOKS) process.exit(0);
   try {
     const argv = new Set(process.argv.slice(2));
-    const notify = argv.has("--notify");
 
     const input = await Bun.stdin.text();
     const inputData = JSON.parse(input);
@@ -25,20 +23,6 @@ async function main(): Promise<void> {
     log.debug(
       `Logged SubagentStart: agent_id=${agentId}, agent_type=${agentType}`
     );
-
-    // Announce via TTS
-    if (notify) {
-      log.debug(`=== SubagentStart for agent: ${agentId} ===`);
-      log.debug(`agent_type: ${agentType}`);
-
-      const announcement =
-        agentType && agentType !== "unknown"
-          ? `${agentType} agent started`
-          : "Subagent started";
-
-      log.debug(`Announcing: ${announcement}`);
-      speak(announcement);
-    }
 
     process.exit(0);
   } catch {
