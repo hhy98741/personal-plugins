@@ -115,3 +115,11 @@ Using the Blake voice in Envato Elements to generate these phrases.
 3. Memory optimized.
 4. Context compressed.
 5. Compaction complete.
+
+### Session ended
+
+1. Session ended.
+2. Session closed.
+3. Shutdown complete.
+4. Session terminated.
+5. Goodbye.

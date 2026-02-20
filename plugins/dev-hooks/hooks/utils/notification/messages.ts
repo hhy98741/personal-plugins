@@ -109,6 +109,20 @@ export function inputNeededMessage(): string {
   return pick(INPUT_NEEDED);
 }
 
+// --- End session (session-end) ---
+
+const SESSION_END = [
+  "session-end-01.mp3",
+  "session-end-02.mp3",
+  "session-end-03.mp3",
+  "session-end-04.mp3",
+  "session-end-05.mp3",
+];
+
+export function sessionEndMessage(): string {
+  return pick(SESSION_END);
+}
+
 // --- New session (session-start) ---
 
 const SESSION_CLEAR = [

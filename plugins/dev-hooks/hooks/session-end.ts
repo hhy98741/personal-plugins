@@ -10,6 +10,8 @@ import {
 } from "fs";
 import { join } from "path";
 import { appendToLog } from "./utils/log.ts";
+import { sessionEndMessage } from "./utils/notification/messages.ts";
+import { play } from "./utils/notification/play-message.ts";
 
 function performCleanup(): string[] {
   const actions: string[] = [];
@@ -56,6 +58,7 @@ async function main(): Promise<void> {
   try {
     const argv = new Set(process.argv.slice(2));
     const cleanup = argv.has("--cleanup");
+    const announce = argv.has("--announce");
 
     const input = await Bun.stdin.text();
     const inputData = JSON.parse(input);
@@ -91,6 +94,10 @@ async function main(): Promise<void> {
         cleanupData.push(cleanupLog);
         writeFileSync(cleanupFile, JSON.stringify(cleanupData, null, 2));
       }
+    }
+
+    if (announce) {
+      play(sessionEndMessage());
     }
 
     process.exit(0);
