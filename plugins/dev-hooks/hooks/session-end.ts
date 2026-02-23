@@ -64,6 +64,7 @@ async function main(): Promise<void> {
     const inputData = JSON.parse(input);
 
     const sessionId: string = inputData.session_id ?? "unknown";
+    const reason: string = inputData.reason ?? "unknown";
 
     // Add timestamp
     inputData.logged_at = new Date().toISOString();
@@ -96,7 +97,7 @@ async function main(): Promise<void> {
       }
     }
 
-    if (announce) {
+    if (announce && reason != 'clear') {
       play(sessionEndMessage());
     }
 
