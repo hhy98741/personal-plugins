@@ -7,7 +7,7 @@ export function play(messageFile: string): void {
 
     if (platform === "darwin") {
       // macOS
-      Bun.spawn(["afplay", "-v", "0.33", pathToFile]);
+      Bun.spawn(["afplay", "-v", "0.5", pathToFile]);
     } else if (platform === "linux") {
       // Linux
       Bun.spawn(["paplay", pathToFile]);
