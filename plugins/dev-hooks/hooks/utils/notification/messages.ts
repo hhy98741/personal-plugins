@@ -13,6 +13,30 @@ function pick(items: string[]): string {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+// --- Feature agent/skill completion ---
+
+const FEATURE_COMPLETE = [
+  "feature-01.mp3",
+  "feature-02.mp3",
+  "feature-03.mp3",
+  "feature-04.mp3",
+  "feature-05.mp3",
+  "feature-06.mp3",
+  "feature-07.mp3",
+  "feature-08.mp3",
+  "feature-09.mp3",
+  "feature-10.mp3",
+  "feature-11.mp3",
+  "feature-12.mp3",
+  "feature-13.mp3",
+  "feature-14.mp3",
+  "feature-15.mp3",
+];
+
+export function featureWriterCompleteMessage(): string {
+  return pick(FEATURE_COMPLETE);
+}
+
 // --- Coder agent completion (coder-stop) ---
 
 const CODER_COMPLETE = [
@@ -59,6 +83,30 @@ const REVIEWER_COMPLETE = [
 
 export function reviewerCompleteMessage(): string {
   return pick(REVIEWER_COMPLETE);
+}
+
+// --- Document agent completion (document-stop) ---
+
+const DOCUMENTATION_COMPLETE = [
+  "document-01.mp3",
+  "document-02.mp3",
+  "document-03.mp3",
+  "document-04.mp3",
+  "document-05.mp3",
+  "document-06.mp3",
+  "document-07.mp3",
+  "document-08.mp3",
+  "document-09.mp3",
+  "document-10.mp3",
+  "document-11.mp3",
+  "document-12.mp3",
+  "document-13.mp3",
+  "document-14.mp3",
+  "document-15.mp3",
+];
+
+export function documentationCompleteMessage(): string {
+  return pick(DOCUMENTATION_COMPLETE);
 }
 
 // --- Main agent completion (stop) ---

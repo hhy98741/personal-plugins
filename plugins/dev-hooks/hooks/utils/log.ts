@@ -2,11 +2,18 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { join } from "path";
 import { getLogDir } from "./dir.ts";
 
+const LOG_LEVELS = { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3 } as const;
+type LogLevel = keyof typeof LOG_LEVELS;
+
 /**
  * Append an entry to a JSON array log file.
  * Creates the file and parent directories if they don't exist.
+ * Only writes when LOG_LEVEL is INFO or higher.
  */
 export function appendToLog(name: string, entry: unknown): void {
+  const env = (process.env.LOG_LEVEL ?? "DEBUG").toUpperCase();
+  if ((LOG_LEVELS[env as LogLevel] ?? LOG_LEVELS.DEBUG) < LOG_LEVELS.INFO) return;
+
   const logPath = join(getLogDir(), `${name}.json`);
   mkdirSync(getLogDir(), { recursive: true });
   let logData: unknown[] = [];
@@ -31,9 +38,6 @@ export interface LevelLogger {
   warn: (message: string) => void;
   error: (message: string) => void;
 }
-
-const LOG_LEVELS = { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3 } as const;
-type LogLevel = keyof typeof LOG_LEVELS;
 
 export function createLogger(name: string): LevelLogger {
   const logFile = join(getLogDir(), "hooks.log");

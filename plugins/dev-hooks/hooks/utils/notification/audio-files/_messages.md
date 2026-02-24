@@ -1,5 +1,45 @@
 # Messages to use for notifications in hooks
 
+## Feature agent/skill
+
+Using the Maya voice in Envato Elements to generate these phrases.
+
+1. I’ve defined the feature requirements.
+2. The scope has been outlined.
+3. The feature breakdown is ready.
+4. I’ve clarified what needs to be built.
+5. The objectives and expected outcomes are defined.
+6. I’ve structured the feature at a high level.
+7. The requirements are documented and ready.
+8. I’ve outlined the desired behavior and success criteria.
+9. The feature has been clearly scoped.
+10. I’ve captured the business goals and expectations.
+11. The high-level plan is ready for planning and implementation.
+12. I’ve translated the request into actionable features.
+13. The user outcomes and requirements are defined.
+14. The feature definition is complete.
+15. Everything that needs to be built has been outlined.
+
+## Planner agent
+
+Using the Colin voice in Envato Elements to generate these phrases.
+
+1. I’ve outlined the implementation plan.
+2. The strategy is ready.
+3. I’ve mapped out the approach.
+4. Here’s the proposed plan for the feature.
+5. I’ve broken this down into actionable steps.
+6. The implementation strategy is prepared.
+7. I’ve structured a plan to move forward.
+8. The execution plan is ready for review.
+9. I’ve detailed the steps needed to complete this.
+10. The approach has been defined.
+11. I’ve organized the work into a clear plan.
+12. The roadmap for this feature is set.
+13. I’ve laid out the development strategy.
+14. The plan is ready to hand off to implementation.
+15. Everything’s mapped out and ready to proceed.
+
 ## Coder agent
 
 Using the Logan voice in Envato Elements to generate these phrases.
@@ -39,6 +79,26 @@ Using the Wyatt voice in Envato Elements to generate these phrases.
 13. Code quality looks good and requirements are satisfied.
 14. I’ve double-checked the behavior — working as intended.
 15. All set. The implementation meets the requirements.
+
+## Document agent
+
+Using the Sarah voice in Envato Elements to generate these phrases.
+
+1. I’ve documented the changes.
+2. The updates have been recorded.
+3. Documentation has been added for this change.
+4. I’ve updated the documentation accordingly.
+5. The changes are now reflected in the docs.
+6. I’ve captured the relevant details in the documentation.
+7. Documentation is up to date.
+8. I’ve added notes covering the recent updates.
+9. The new behavior has been documented.
+10. I’ve revised the documentation to match the implementation.
+11. All relevant changes have been documented.
+12. The documentation now aligns with the latest updates.
+13. I’ve included the necessary details in the docs.
+14. The documentation has been reviewed and updated.
+15. Everything that needed documentation has been recorded.
 
 ## Notification
 
