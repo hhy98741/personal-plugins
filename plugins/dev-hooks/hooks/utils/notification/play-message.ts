@@ -1,22 +1,37 @@
 import { join } from "path";
+import { createLogger } from "../log.ts";
 
-const scriptWindowsPath = Bun.spawnSync(["wslpath", "-w", join(import.meta.dir, "play-mp3.ps1")]).stdout.toString().trim();
+const log = createLogger("play-message");
+
+const platform = process.platform;
+const isWSL = platform === "linux" && !!process.env.WSL_DISTRO_NAME;
+const audioDir = join(import.meta.dir, "audio-files");
+
+const scriptWindowsPath = isWSL
+  ? Bun.spawnSync(["wslpath", "-w", join(import.meta.dir, "play-mp3.ps1")]).stdout.toString().trim()
+  : "";
+
+const wslPathCache = new Map<string, string>();
+
+function toWindowsPath(path: string): string {
+  const cached = wslPathCache.get(path);
+  log.debug(`Cache ${cached ? 'hit' : 'miss'}: ${path}`);
+  if (cached) return cached;
+  
+  const result = Bun.spawnSync(["wslpath", "-w", path]).stdout.toString().trim();
+  wslPathCache.set(path, result);
+  return result;
+}
 
 export function play(messageFile: string): void {
   try {
-    const pathToFile = join(import.meta.dir, "audio-files", messageFile);
-    const platform = process.platform;
-    const isWSL = platform === "linux" && !!process.env.WSL_DISTRO_NAME;
+    const pathToFile = join(audioDir, messageFile);
 
     if (platform === "darwin") {
-      // macOS
       Bun.spawn(["afplay", "-v", "0.5", pathToFile]);
     } else if (isWSL || platform === "win32") {
-      // WSL or Windows
-      const messageWindowsPath = Bun.spawnSync(["wslpath", "-w", pathToFile]).stdout.toString().trim();
-      Bun.spawn(["powershell.exe", "-c", `& '${scriptWindowsPath}' '${messageWindowsPath}'`]);
+      Bun.spawn(["powershell.exe", "-c", `& '${scriptWindowsPath}' '${toWindowsPath(pathToFile)}'`]);
     } else if (platform === "linux") {
-      // Linux
       Bun.spawn(["paplay", pathToFile]);
     }
   } catch {
