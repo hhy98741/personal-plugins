@@ -16,7 +16,7 @@ export function play(messageFile: string): void {
       Bun.spawn(["afplay", "-v", "0.5", pathToFile]);
     } else if (isWSL || platform === "win32") {
       const wslPathToFile = Bun.spawnSync(["wslpath", "-w", pathToFile]).stdout.toString().trim();
-      Bun.spawn(["powershell.exe", "-c", `& '${scriptWindowsPath}' '${wslPathToFile}'`]);
+      Bun.spawnSync(["powershell.exe", "-c", `& '${scriptWindowsPath}' '${wslPathToFile}'`]);
     } else if (platform === "linux") {
       Bun.spawn(["paplay", pathToFile]);
     }
