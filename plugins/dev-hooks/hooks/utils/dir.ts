@@ -3,6 +3,10 @@ import { existsSync } from "fs";
 import { join, dirname } from "path";
 
 function getProjectRoot(): string {
+  if (process.env.CLAUDE_PROJECT_DIR) {
+    return process.env.CLAUDE_PROJECT_DIR;
+  }
+
   const result = spawnSync(["git", "rev-parse", "--show-toplevel"]);
   if (result.exitCode === 0) {
     return result.stdout.toString().trim();
