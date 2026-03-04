@@ -10,15 +10,16 @@ const scriptWindowsPath = isWSL
 
 export function play(messageFile: string): void {
   try {
+    const volume = process.env.NOTIFICATION_VOLUME ?? "0.5";
     const pathToFile = join(audioDir, messageFile);
 
     if (platform === "darwin") {
-      Bun.spawn(["afplay", "-v", "0.5", pathToFile]);
+      Bun.spawn(["afplay", "-v", volume, pathToFile]);
     } else if (isWSL || platform === "win32") {
       const wslPathToFile = Bun.spawnSync(["wslpath", "-w", pathToFile]).stdout.toString().trim();
-      Bun.spawnSync(["powershell.exe", "-c", `& '${scriptWindowsPath}' '${wslPathToFile}'`]);
+      Bun.spawnSync(["powershell.exe", "-c", `& '${scriptWindowsPath}' '${wslPathToFile}' -Volume ${volume}`]);
     } else if (platform === "linux") {
-      Bun.spawn(["paplay", pathToFile]);
+      Bun.spawn(["paplay", `--volume=${Math.round(parseFloat(volume) * 65536)}`, pathToFile]);
     }
   } catch {
     // Fail silently
