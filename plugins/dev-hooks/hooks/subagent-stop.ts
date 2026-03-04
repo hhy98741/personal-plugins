@@ -4,6 +4,8 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { getLogDir } from "./utils/dir.ts";
 import { appendToLog, createLogger } from "./utils/log.ts";
+import { subagentCompleteMessage } from "./utils/notification/messages.ts";
+import { play } from "./utils/notification/play-message.ts";
 
 const log = createLogger("subagent-stop");
 
@@ -12,9 +14,19 @@ async function main(): Promise<void> {
   try {
     const argv = new Set(process.argv.slice(2));
     const chat = argv.has("--chat");
+    const notify = argv.has("--notify");
 
     const input = await Bun.stdin.text();
     const inputData = JSON.parse(input);
+
+    const agentType: string = inputData.agent_type ?? "unknown";
+    if (notify) {
+      const summaryMessage = subagentCompleteMessage(agentType);
+      if (summaryMessage) {
+        play(summaryMessage);
+      }
+      log.debug(`Generated summary_message: ${summaryMessage}`);
+    }
 
     // Log the event
     appendToLog("subagent_stop", inputData);

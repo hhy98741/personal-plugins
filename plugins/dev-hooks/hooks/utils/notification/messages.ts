@@ -33,10 +33,6 @@ const FEATURE_COMPLETE = [
   "feature-15.mp3",
 ];
 
-export function featureWriterCompleteMessage(): string {
-  return pick(FEATURE_COMPLETE);
-}
-
 // --- Coder agent completion (coder-stop) ---
 
 const CODER_COMPLETE = [
@@ -56,10 +52,6 @@ const CODER_COMPLETE = [
   "coder-14.mp3",
   "coder-15.mp3",
 ];
-
-export function coderCompleteMessage(): string {
-  return pick(CODER_COMPLETE);
-}
 
 // --- Reviewer agent completion (reviewer-stop) ---
 
@@ -81,10 +73,6 @@ const REVIEWER_COMPLETE = [
   "reviewer-15.mp3",
 ];
 
-export function reviewerCompleteMessage(): string {
-  return pick(REVIEWER_COMPLETE);
-}
-
 // --- Document agent completion (document-stop) ---
 
 const DOCUMENTATION_COMPLETE = [
@@ -105,8 +93,19 @@ const DOCUMENTATION_COMPLETE = [
   "document-15.mp3",
 ];
 
-export function documentationCompleteMessage(): string {
-  return pick(DOCUMENTATION_COMPLETE);
+export function subagentCompleteMessage(agentType: string): string|null {
+  switch (agentType) {
+    case "feature":
+      return pick(FEATURE_COMPLETE);
+    case "coder":
+      return pick(CODER_COMPLETE);
+    case "reviewer":
+      return pick(REVIEWER_COMPLETE);
+    case "document":
+      return pick(DOCUMENTATION_COMPLETE);
+  }
+
+  return null;
 }
 
 // --- Main agent completion (stop) ---

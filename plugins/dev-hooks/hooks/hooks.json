@@ -55,7 +55,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.ts"
+            "command": "bun ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.ts --notify"
           }
         ]
       }
