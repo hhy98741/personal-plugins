@@ -12,6 +12,10 @@
     {
       "name": "dev-hooks",
       "source": "./plugins/dev-hooks"
+    },
+    {
+      "name": "dev-skills",
+      "source": "./plugins/dev-skills"
     }
   ]
 }
