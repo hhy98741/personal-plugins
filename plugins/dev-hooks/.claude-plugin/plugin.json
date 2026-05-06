@@ -1,5 +1,5 @@
 {
   "name": "dev-hooks",
-  "description": "Breaks down epics and features to be built with a team of subagents",
-  "version": "1.2.7"
+  "description": "Hooks for logging, safety checks, TTS voice notifications, and session management",
+  "version": "1.2.8"
 }
