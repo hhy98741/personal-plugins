@@ -10,12 +10,16 @@
       "source": "./plugins/app-builder"
     },
     {
-      "name": "dev-hooks",
-      "source": "./plugins/dev-hooks"
+      "name": "activity-hooks",
+      "source": "./plugins/activity-hooks"
     },
     {
       "name": "dev-skills",
       "source": "./plugins/dev-skills"
+    },
+    {
+      "name": "guard-hooks",
+      "source": "./plugins/guard-hooks"
     },
     {
       "name": "voice-notifications",

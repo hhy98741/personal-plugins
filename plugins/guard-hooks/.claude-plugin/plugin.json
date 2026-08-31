@@ -1,0 +1,5 @@
+{
+  "name": "guard-hooks",
+  "description": "Guardrail hooks that block dangerous rm commands and .env file access",
+  "version": "1.0.0"
+}
