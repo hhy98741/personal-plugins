@@ -16,6 +16,10 @@
     {
       "name": "dev-skills",
       "source": "./plugins/dev-skills"
+    },
+    {
+      "name": "voice-notifications",
+      "source": "./plugins/voice-notifications"
     }
   ]
 }
