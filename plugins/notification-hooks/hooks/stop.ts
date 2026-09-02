@@ -12,7 +12,7 @@ async function main(): Promise<void> {
     await Bun.stdin.text();
 
     if (notify) {
-      play(agentCompleteMessage());
+      play(agentCompleteMessage(), "done");
     }
 
     process.exit(0);

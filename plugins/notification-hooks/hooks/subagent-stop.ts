@@ -16,7 +16,7 @@ async function main(): Promise<void> {
     if (notify) {
       const summaryMessage = subagentCompleteMessage(agentType);
       if (summaryMessage) {
-        play(summaryMessage);
+        play(summaryMessage, "done");
       }
     }
 

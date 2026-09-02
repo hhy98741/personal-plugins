@@ -15,7 +15,7 @@ async function main(): Promise<void> {
     const source: string = inputData.source ?? "unknown";
 
     if (announce) {
-      play(sessionStartMessage(source));
+      play(sessionStartMessage(source), "session");
     }
 
     process.exit(0);

@@ -13,7 +13,7 @@ async function main(): Promise<void> {
     const inputData = JSON.parse(input);
 
     if (notify && inputData.message !== "Claude is waiting for your input") {
-      play(inputNeededMessage());
+      play(inputNeededMessage(), "question");
     }
 
     process.exit(0);

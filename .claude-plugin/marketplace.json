@@ -22,8 +22,8 @@
       "source": "./plugins/guard-hooks"
     },
     {
-      "name": "voice-notifications",
-      "source": "./plugins/voice-notifications"
+      "name": "notification-hooks",
+      "source": "./plugins/notification-hooks"
     }
   ]
 }

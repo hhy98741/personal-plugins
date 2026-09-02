@@ -1,7 +1,9 @@
-# Voice Notifications Plugin
+# Notification Hooks Plugin
 
-Plays short spoken-audio clips at key points in a Claude Code session: session
-start/end, waiting for input, and when the main agent or a subagent finishes.
+Plays audio at key points in a Claude Code session: session start/end,
+waiting for input, and when the main agent or a subagent finishes. On
+macOS/Linux this is a short spoken-audio clip; on Windows/WSL (which has no
+reliable direct audio access) it's one of three Windows system sounds.
 
 ## Prerequisites
 
@@ -13,7 +15,7 @@ start/end, waiting for input, and when the main agent or a subagent finishes.
 
 ```
 /plugin marketplace add hhy98741/personal-plugins
-/plugin install voice-notifications
+/plugin install notification-hooks
 ```
 
 ### Manual Installation
@@ -27,32 +29,39 @@ available automatically.
 
 ## Configuration
 
-- `NOTIFICATION_VOLUME` — playback volume from `0` to `1` (default `0.5`)
+- `NOTIFICATION_VOLUME` — playback volume from `0` to `1` (default `0.5`, macOS/Linux only)
 
 ## How it works
 
-Each hook reads its event's JSON payload from stdin, picks a random audio
-file for that event, and plays it via `play()` in
-`hooks/utils/notification/play-message.ts`:
+Each hook reads its event's JSON payload from stdin and calls `play()` in
+`hooks/utils/notification/play-message.ts` with a random audio file (for
+macOS/Linux) and a sound category (for Windows/WSL):
 
-| Hook | Claude Code event | Plays when |
-|---|---|---|
-| `hooks/notification.ts` | `Notification` | Claude needs input |
-| `hooks/session-start.ts` | `SessionStart` | A session starts, resumes, or is compacted |
-| `hooks/session-end.ts` | `SessionEnd` | A session ends (not on `/clear`) |
-| `hooks/stop.ts` | `Stop` | The main agent finishes a turn |
-| `hooks/subagent-stop.ts` | `SubagentStop` | A subagent finishes (`feature`, `coder`, `reviewer`, or `document` agent types) |
+| Hook | Claude Code event | Plays when | Category |
+|---|---|---|---|
+| `hooks/notification.ts` | `Notification` | Claude needs input | `question` |
+| `hooks/session-start.ts` | `SessionStart` | A session starts, resumes, or is compacted | `session` |
+| `hooks/session-end.ts` | `SessionEnd` | A session ends (not on `/clear`) | `session` |
+| `hooks/stop.ts` | `Stop` | The main agent finishes a turn | `done` |
+| `hooks/subagent-stop.ts` | `SubagentStop` | A subagent finishes (`feature`, `coder`, `reviewer`, or `document` agent types) | `done` |
 
-Audio files live in `hooks/utils/notification/audio-files/`, grouped by event
-in `hooks/utils/notification/messages.ts`; see
+**macOS** (`afplay`) and **Linux** (`paplay`) play one of 15 (or 5, for
+session events) mp3 clips per event, picked at random in
+`hooks/utils/notification/messages.ts`. Audio files live in
+`hooks/utils/notification/audio-files/`; see
 [`_messages.md`](hooks/utils/notification/audio-files/_messages.md) for the
-scripted text behind each clip. Playback is supported on macOS (`afplay`),
-Linux (`paplay`), and Windows/WSL (via `play-mp3.ps1`).
+scripted text behind each clip.
+
+**Windows/WSL** plays a built-in Windows system sound instead, via a one-line
+`powershell.exe` call to `System.Media.SystemSounds` — `question` uses
+"Question", `done` uses "Asterisk", and `session` uses "Exclamation". WSL is
+detected by reading `/proc/version` rather than an env var, since a hook's
+child process isn't guaranteed to inherit `WSL_DISTRO_NAME`.
 
 ## Project Structure
 
 ```
-plugins/voice-notifications/
+plugins/notification-hooks/
   .claude-plugin/plugin.json   Plugin metadata
   hooks/
     hooks.json                 Hook event registration
@@ -62,8 +71,7 @@ plugins/voice-notifications/
     stop.ts                    Stop hook
     subagent-stop.ts           SubagentStop hook
     utils/notification/
-      play-message.ts          Cross-platform audio playback
-      play-mp3.ps1              Windows/WSL playback script
+      play-message.ts          Cross-platform audio/system-sound playback
       messages.ts               Picks a random audio file per event
-      audio-files/               The mp3 clips
+      audio-files/               The mp3 clips (macOS/Linux)
 ```
