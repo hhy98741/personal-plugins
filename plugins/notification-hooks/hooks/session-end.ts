@@ -15,7 +15,7 @@ async function main(): Promise<void> {
     const reason: string = inputData.reason ?? "unknown";
 
     if (announce && reason !== "clear") {
-      play(sessionEndMessage(), "session");
+      play(sessionEndMessage(), "session-end");
     }
 
     process.exit(0);

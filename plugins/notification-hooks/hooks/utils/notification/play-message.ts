@@ -15,18 +15,24 @@ const platform = process.platform;
 const isWSL = platform === "linux" && isRunningUnderWSL();
 const audioDir = join(import.meta.dir, "audio-files");
 
-export type SoundCategory = "question" | "done" | "session";
+export type SoundCategory = "question" | "done" | "session-start" | "session-end";
 
 // Windows/WSL has no reliable access to the audio device to play our mp3s
 // (and shelling out to PowerShell + MediaPlayer to do it was both slow to
 // start and, under concurrent hook events, prone to piling up for minutes).
-// Use the OS's own named system sounds instead — System.Media.SystemSounds
-// is part of System.dll, already loaded in every PowerShell host, so this
-// needs no assembly loading the way MediaPlayer/PresentationCore did.
-const SYSTEM_SOUND: Record<SoundCategory, string> = {
-  question: "Question", // Notification (Claude is waiting for input)
-  done: "Asterisk", // Stop / SubagentStop (a turn or subagent finished)
-  session: "Exclamation", // SessionStart / SessionEnd
+// System.Media.SystemSounds only exposes 5 fixed slots (Asterisk/Beep/
+// Exclamation/Hand/Question) and depends on whatever the active Sound Scheme
+// happens to have assigned to them (often duplicated or left unassigned by
+// default), so instead read the .wav currently bound to a specific named
+// AppEvents entry straight from the registry — the same place Settings >
+// Sound > Sounds writes to — and play that file directly. Key names come
+// from `HKCU:\AppEvents\EventLabels` (its default value is the display name
+// shown in that Sounds tab, e.g. "DeviceConnect" -> "Device Connect").
+const SOUND_EVENT_KEY: Record<SoundCategory, string> = {
+  question: "Notification.IM", // "Instant Message Notification"
+  done: "Notification.Default", // "Notification"
+  "session-start": "DeviceConnect", // "Device Connect"
+  "session-end": "DeviceDisconnect", // "Device Disconnect"
 };
 
 export function play(messageFile: string, category: SoundCategory): void {
@@ -37,16 +43,13 @@ export function play(messageFile: string, category: SoundCategory): void {
       const pathToFile = join(audioDir, messageFile);
       Bun.spawn(["afplay", "-v", volume, pathToFile]);
     } else if (isWSL || platform === "win32") {
-      const sound = SYSTEM_SOUND[category];
-      Bun.spawn(
-        [
-          "powershell.exe",
-          "-NoProfile",
-          "-c",
-          `[System.Media.SystemSounds]::${sound}.Play(); Start-Sleep -Milliseconds 500`,
-        ],
-        { stdio: ["ignore", "ignore", "ignore"] }
-      );
+      const eventKey = SOUND_EVENT_KEY[category];
+      const script =
+        `$p = (Get-ItemProperty "HKCU:\\AppEvents\\Schemes\\Apps\\.Default\\${eventKey}\\.Current" -ErrorAction SilentlyContinue)."(default)"; ` +
+        `if ($p) { (New-Object Media.SoundPlayer $p).PlaySync() }`;
+      Bun.spawn(["powershell.exe", "-NoProfile", "-c", script], {
+        stdio: ["ignore", "ignore", "ignore"],
+      });
     } else if (platform === "linux") {
       const pathToFile = join(audioDir, messageFile);
       Bun.spawn(["paplay", `--volume=${Math.round(parseFloat(volume) * 65536)}`, pathToFile]);
