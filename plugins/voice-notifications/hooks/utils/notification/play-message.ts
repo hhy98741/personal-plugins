@@ -17,7 +17,12 @@ export function play(messageFile: string): void {
       Bun.spawn(["afplay", "-v", volume, pathToFile]);
     } else if (isWSL || platform === "win32") {
       const wslPathToFile = Bun.spawnSync(["wslpath", "-w", pathToFile]).stdout.toString().trim();
-      Bun.spawnSync(["powershell.exe", "-c", `& '${scriptWindowsPath}' '${wslPathToFile}' -Volume ${volume}`]);
+      // Fire-and-forget: spawnSync here would block the hook (and Claude Code)
+      // until PowerShell finishes playing the whole clip, since play-mp3.ps1
+      // has to stay alive for the duration to actually play it.
+      Bun.spawn(["powershell.exe", "-c", `& '${scriptWindowsPath}' '${wslPathToFile}' -Volume ${volume}`], {
+        stdio: ["ignore", "ignore", "ignore"],
+      });
     } else if (platform === "linux") {
       Bun.spawn(["paplay", `--volume=${Math.round(parseFloat(volume) * 65536)}`, pathToFile]);
     }
