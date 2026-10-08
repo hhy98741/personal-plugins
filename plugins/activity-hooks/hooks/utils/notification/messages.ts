@@ -93,86 +93,16 @@ const DOCUMENTATION_COMPLETE = [
   "document-15.mp3",
 ];
 
-// --- Planner agent completion (planner-stop) ---
-
-const PLANNER_COMPLETE = [
-  "planner-01.mp3",
-  "planner-02.mp3",
-  "planner-03.mp3",
-  "planner-04.mp3",
-  "planner-05.mp3",
-  "planner-06.mp3",
-  "planner-07.mp3",
-  "planner-08.mp3",
-  "planner-09.mp3",
-  "planner-10.mp3",
-  "planner-11.mp3",
-  "planner-12.mp3",
-  "planner-13.mp3",
-  "planner-14.mp3",
-  "planner-15.mp3",
-];
-
-// --- Explore agent completion (explore-stop) ---
-
-const EXPLORE_COMPLETE = [
-  "explore-01.mp3",
-  "explore-02.mp3",
-  "explore-03.mp3",
-  "explore-04.mp3",
-  "explore-05.mp3",
-  "explore-06.mp3",
-  "explore-07.mp3",
-  "explore-08.mp3",
-  "explore-09.mp3",
-  "explore-10.mp3",
-  "explore-11.mp3",
-  "explore-12.mp3",
-  "explore-13.mp3",
-  "explore-14.mp3",
-  "explore-15.mp3",
-];
-
-// --- General-purpose agent completion (general-stop) ---
-
-const GENERAL_COMPLETE = [
-  "general-01.mp3",
-  "general-02.mp3",
-  "general-03.mp3",
-  "general-04.mp3",
-  "general-05.mp3",
-  "general-06.mp3",
-  "general-07.mp3",
-  "general-08.mp3",
-  "general-09.mp3",
-  "general-10.mp3",
-  "general-11.mp3",
-  "general-12.mp3",
-  "general-13.mp3",
-  "general-14.mp3",
-  "general-15.mp3",
-];
-
 export function subagentCompleteMessage(agentType: string): string|null {
-  // Plugin agents may arrive namespaced (e.g. "app-builder:coder").
-  const type = (agentType.split(":").pop() ?? agentType).toLowerCase();
-
-  switch (type) {
+  switch (agentType) {
     case "feature":
       return pick(FEATURE_COMPLETE);
-    case "planner":
-    case "plan":
-      return pick(PLANNER_COMPLETE);
     case "coder":
       return pick(CODER_COMPLETE);
     case "reviewer":
       return pick(REVIEWER_COMPLETE);
     case "document":
       return pick(DOCUMENTATION_COMPLETE);
-    case "explore":
-      return pick(EXPLORE_COMPLETE);
-    case "general-purpose":
-      return pick(GENERAL_COMPLETE);
   }
 
   return null;
