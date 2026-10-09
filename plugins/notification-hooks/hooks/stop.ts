@@ -9,7 +9,11 @@ async function main(): Promise<void> {
     const argv = new Set(process.argv.slice(2));
     const notify = argv.has("--notify");
 
-    await Bun.stdin.text();
+    const input = await Bun.stdin.text();
+    const inputData = JSON.parse(input);
+
+    // Subagent contexts include agent_id; SubagentStop handles those.
+    if (inputData.agent_id) process.exit(0);
 
     if (notify) {
       play(agentCompleteMessage(), "done");
