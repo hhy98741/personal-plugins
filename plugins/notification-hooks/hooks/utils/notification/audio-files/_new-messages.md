@@ -1,10 +1,7 @@
-# New subagent sounds to generate
+# Subagent sounds
 
-These subagent types are wired up in `messages.ts` (`subagentCompleteMessage`) but have no audio yet.
-Generate each phrase, save as `<prefix>-01.mp3` … `<prefix>-15.mp3` in this folder.
-Until the files exist, those subagents play nothing (afplay fails silently).
-
-Suggested: pick a voice distinct from the existing ones (Maya, Colin, Logan, Wyatt) so you can tell types apart by ear.
+These clips are no longer wired up: subagent completion is silent. Only the
+`general-*` clips are used, as extra main-agent "done" phrases (see `messages.ts`).
 
 ## Explore agent — prefix `explore` (hook `agent_type`: `Explore`)
 

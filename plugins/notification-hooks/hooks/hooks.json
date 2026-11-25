@@ -11,17 +11,6 @@
         ]
       }
     ],
-    "SubagentStop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bun ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.ts --notify"
-          }
-        ]
-      }
-    ],
     "Notification": [
       {
         "matcher": "",

@@ -1,7 +1,7 @@
 # Notification Hooks Plugin
 
 Plays audio at key points in a Claude Code session: session start/end,
-waiting for input, and when the main agent or a subagent finishes. On
+waiting for input, and when the main agent is fully done. On
 macOS/Linux this is a short spoken-audio clip; on Windows/WSL (which has no
 reliable direct audio access) it's one of your Windows sound-scheme sounds.
 
@@ -42,8 +42,23 @@ macOS/Linux) and a sound category (for Windows/WSL):
 | `hooks/notification.ts` | `Notification` | Claude needs input | `question` |
 | `hooks/session-start.ts` | `SessionStart` | A session starts, resumes, or is compacted | `session-start` |
 | `hooks/session-end.ts` | `SessionEnd` | A session ends (not on `/clear`) | `session-end` |
-| `hooks/stop.ts` | `Stop` | The main agent finishes a turn | `done` |
-| `hooks/subagent-stop.ts` | `SubagentStop` | A subagent finishes (`feature`, `coder`, `reviewer`, or `document` agent types) | `done` |
+| `hooks/stop.ts` | `Stop` | The main agent finishes and nothing is still in flight (see below) | `done` |
+
+### Only announcing when the work is really done
+
+When the main agent hands work to a background subagent (or a background
+shell command, monitor, etc.), its turn ends and `Stop` fires, then fires
+again each time that work wakes it back up. To avoid a "done" sound for
+each of those pauses, `stop.ts` stays silent while the Stop payload lists
+anything in `background_tasks`, or a one-shot wake-up (`recurring: false`)
+in `session_crons`. Recurring crons such as `/loop` do not block, so each
+loop iteration still notifies. If Claude Code does not send these fields,
+the sound plays as before. Subagents themselves are silent; there is no
+`SubagentStop` hook.
+
+The main-agent sound is picked from the `stop-*` clips plus the generic
+`general-*` clips. The other per-subagent clips (`coder-*`, `reviewer-*`,
+etc.) are still in `audio-files/` but no longer used.
 
 **macOS** (`afplay`) and **Linux** (`paplay`) play one of 15 (or 5, for
 session events) mp3 clips per event, picked at random in
@@ -89,7 +104,6 @@ plugins/notification-hooks/
     session-start.ts           SessionStart hook
     session-end.ts             SessionEnd hook
     stop.ts                    Stop hook
-    subagent-stop.ts           SubagentStop hook
     utils/notification/
       play-message.ts          Cross-platform audio/system-sound playback
       messages.ts               Picks a random audio file per event

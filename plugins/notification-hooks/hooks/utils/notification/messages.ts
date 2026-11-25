@@ -13,127 +13,28 @@ function pick(items: string[]): string {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-// --- Feature agent/skill completion ---
+// --- Main agent completion (stop) ---
 
-const FEATURE_COMPLETE = [
-  "feature-01.mp3",
-  "feature-02.mp3",
-  "feature-03.mp3",
-  "feature-04.mp3",
-  "feature-05.mp3",
-  "feature-06.mp3",
-  "feature-07.mp3",
-  "feature-08.mp3",
-  "feature-09.mp3",
-  "feature-10.mp3",
-  "feature-11.mp3",
-  "feature-12.mp3",
-  "feature-13.mp3",
-  "feature-14.mp3",
-  "feature-15.mp3",
+const STOP_COMPLETE = [
+  "stop-01.mp3",
+  "stop-02.mp3",
+  "stop-03.mp3",
+  "stop-04.mp3",
+  "stop-05.mp3",
+  "stop-06.mp3",
+  "stop-07.mp3",
+  "stop-08.mp3",
+  "stop-09.mp3",
+  "stop-10.mp3",
+  "stop-11.mp3",
+  "stop-12.mp3",
+  "stop-13.mp3",
+  "stop-14.mp3",
+  "stop-15.mp3",
 ];
 
-// --- Coder agent completion (coder-stop) ---
-
-const CODER_COMPLETE = [
-  "coder-01.mp3",
-  "coder-02.mp3",
-  "coder-03.mp3",
-  "coder-04.mp3",
-  "coder-05.mp3",
-  "coder-06.mp3",
-  "coder-07.mp3",
-  "coder-08.mp3",
-  "coder-09.mp3",
-  "coder-10.mp3",
-  "coder-11.mp3",
-  "coder-12.mp3",
-  "coder-13.mp3",
-  "coder-14.mp3",
-  "coder-15.mp3",
-];
-
-// --- Reviewer agent completion (reviewer-stop) ---
-
-const REVIEWER_COMPLETE = [
-  "reviewer-01.mp3",
-  "reviewer-02.mp3",
-  "reviewer-03.mp3",
-  "reviewer-04.mp3",
-  "reviewer-05.mp3",
-  "reviewer-06.mp3",
-  "reviewer-07.mp3",
-  "reviewer-08.mp3",
-  "reviewer-09.mp3",
-  "reviewer-10.mp3",
-  "reviewer-11.mp3",
-  "reviewer-12.mp3",
-  "reviewer-13.mp3",
-  "reviewer-14.mp3",
-  "reviewer-15.mp3",
-];
-
-// --- Document agent completion (document-stop) ---
-
-const DOCUMENTATION_COMPLETE = [
-  "document-01.mp3",
-  "document-02.mp3",
-  "document-03.mp3",
-  "document-04.mp3",
-  "document-05.mp3",
-  "document-06.mp3",
-  "document-07.mp3",
-  "document-08.mp3",
-  "document-09.mp3",
-  "document-10.mp3",
-  "document-11.mp3",
-  "document-12.mp3",
-  "document-13.mp3",
-  "document-14.mp3",
-  "document-15.mp3",
-];
-
-// --- Planner agent completion (planner-stop) ---
-
-const PLANNER_COMPLETE = [
-  "planner-01.mp3",
-  "planner-02.mp3",
-  "planner-03.mp3",
-  "planner-04.mp3",
-  "planner-05.mp3",
-  "planner-06.mp3",
-  "planner-07.mp3",
-  "planner-08.mp3",
-  "planner-09.mp3",
-  "planner-10.mp3",
-  "planner-11.mp3",
-  "planner-12.mp3",
-  "planner-13.mp3",
-  "planner-14.mp3",
-  "planner-15.mp3",
-];
-
-// --- Explore agent completion (explore-stop) ---
-
-const EXPLORE_COMPLETE = [
-  "explore-01.mp3",
-  "explore-02.mp3",
-  "explore-03.mp3",
-  "explore-04.mp3",
-  "explore-05.mp3",
-  "explore-06.mp3",
-  "explore-07.mp3",
-  "explore-08.mp3",
-  "explore-09.mp3",
-  "explore-10.mp3",
-  "explore-11.mp3",
-  "explore-12.mp3",
-  "explore-13.mp3",
-  "explore-14.mp3",
-  "explore-15.mp3",
-];
-
-// --- General-purpose agent completion (general-stop) ---
+// --- General-purpose clips (originally for the general-purpose subagent) ---
+// Generic enough to reuse as extra main-agent completion phrases.
 
 const GENERAL_COMPLETE = [
   "general-01.mp3",
@@ -153,50 +54,7 @@ const GENERAL_COMPLETE = [
   "general-15.mp3",
 ];
 
-export function subagentCompleteMessage(agentType: string): string|null {
-  // Plugin agents may arrive namespaced (e.g. "app-builder:coder").
-  const type = (agentType.split(":").pop() ?? agentType).toLowerCase();
-
-  switch (type) {
-    case "feature":
-      return pick(FEATURE_COMPLETE);
-    case "planner":
-    case "plan":
-      return pick(PLANNER_COMPLETE);
-    case "coder":
-      return pick(CODER_COMPLETE);
-    case "reviewer":
-      return pick(REVIEWER_COMPLETE);
-    case "document":
-      return pick(DOCUMENTATION_COMPLETE);
-    case "explore":
-      return pick(EXPLORE_COMPLETE);
-    case "general-purpose":
-      return pick(GENERAL_COMPLETE);
-  }
-
-  return null;
-}
-
-// --- Main agent completion (stop) ---
-
-const AGENT_COMPLETE = [
-  "stop-01.mp3",
-  "stop-02.mp3",
-  "stop-03.mp3",
-  "stop-04.mp3",
-  "stop-05.mp3",
-  "stop-06.mp3",
-  "stop-07.mp3",
-  "stop-08.mp3",
-  "stop-09.mp3",
-  "stop-10.mp3",
-  "stop-11.mp3",
-  "stop-12.mp3",
-  "stop-13.mp3",
-  "stop-14.mp3",
-  "stop-15.mp3",
-];
+const AGENT_COMPLETE = [...STOP_COMPLETE, ...GENERAL_COMPLETE];
 
 export function agentCompleteMessage(): string {
   return pick(AGENT_COMPLETE);
